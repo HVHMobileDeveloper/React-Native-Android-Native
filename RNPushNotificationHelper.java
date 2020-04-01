@@ -228,7 +228,10 @@ public class RNPushNotificationHelper {
                         visibility = NotificationCompat.VISIBILITY_PRIVATE;
                 }
             }
-
+            Log.e("CLMMMMMAC",bundle.getString("message"));
+            if (bundle.getString("message").isEmpty()){
+                return;
+            }
             NotificationCompat.Builder notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                     .setContentTitle(title)
                     .setTicker(bundle.getString("ticker"))
