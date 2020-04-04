@@ -146,6 +146,7 @@ public class RNPushNotificationHelper {
 
             if (bundle.getString("message") == null) {
                 // this happens when a 'data' notification is received - we do not synthesize a local notification in this case
+                Log.d(LOG_TAG, "Message in null in: " + bundle);
                 if (bundle.getString("google.message_id") != null){
                     Log.e(LOG_TAG, "message from google");
                     return;
@@ -154,9 +155,8 @@ public class RNPushNotificationHelper {
                     Log.e(LOG_TAG,"Foreground is true will be return");
                     return;
                 }
-                Log.d(LOG_TAG, "Cannot send to notification centre because there is no 'message' field in: " + bundle);
-                String md = bundle.getString("message_data");
                 try {
+                    String md = bundle.getString("message_data");
                     JSONObject jsonObject = new JSONObject(md);
                     Log.e(LOG_TAG, String.valueOf(jsonObject));
                     JSONObject mo = jsonObject.getJSONObject("meta_data").getJSONObject("message_object");
@@ -165,9 +165,15 @@ public class RNPushNotificationHelper {
                     bundle.putString("tag", tag);
                     bundle.putString("message", title);
                 }catch (Exception ex){
-
+                    Log.e(LOG_TAG,ex.toString());
+                    return;
                 }
                 //return;
+            }
+
+            if (bundle.getString("message").isEmpty()){
+                Log.e(LOG_TAG,"Empty message");
+                return;
             }
 
             String notificationIdString = bundle.getString("id");
@@ -228,10 +234,7 @@ public class RNPushNotificationHelper {
                         visibility = NotificationCompat.VISIBILITY_PRIVATE;
                 }
             }
-            Log.e("CLMMMMMAC",bundle.getString("message"));
-            if (bundle.getString("message").isEmpty()){
-                return;
-            }
+
             NotificationCompat.Builder notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                     .setContentTitle(title)
                     .setTicker(bundle.getString("ticker"))
