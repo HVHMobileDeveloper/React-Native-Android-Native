@@ -136,6 +136,7 @@ public class RNPushNotificationHelper {
         }
     }
 
+    //Hiep edit this the class
     public void sendToNotificationCentre(Bundle bundle) {
         try {
             Class intentClass = getMainActivityClass();
@@ -146,6 +147,12 @@ public class RNPushNotificationHelper {
 
             if (bundle.getString("message") == null) {
                 // this happens when a 'data' notification is received - we do not synthesize a local notification in this case
+                /*TODO: old code:
+                Log.d(LOG_TAG, "Cannot send to notification centre because there is no 'message' field in: " + bundle);
+                return;
+                */
+
+                //TODO:Hiep edited the new code:
                 Log.d(LOG_TAG, "Message in null in: " + bundle);
                 if (bundle.getString("google.message_id") != null){
                     Log.e(LOG_TAG, "message from google");
@@ -168,9 +175,10 @@ public class RNPushNotificationHelper {
                     Log.e(LOG_TAG,ex.toString());
                     return;
                 }
-                //return;
+                //TODO: Hiep edited the new code
             }
 
+            //TODO: Hiep additional the new code (checking message empty)
             if (bundle.getString("message").isEmpty()){
                 Log.e(LOG_TAG,"Empty message");
                 return;
