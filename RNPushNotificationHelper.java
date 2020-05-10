@@ -47,6 +47,7 @@ public class RNPushNotificationHelper {
     private static final int ONE_MINUTE = 60 * 1000;
     private static final long ONE_HOUR = 60 * ONE_MINUTE;
     private static final long ONE_DAY = 24 * ONE_HOUR;
+    private static String broadcast_id = "";
 
     public RNPushNotificationHelper(Application context) {
         this.context = context;
@@ -146,6 +147,7 @@ public class RNPushNotificationHelper {
             }
 
             if (bundle.getString("message") == null) {
+                Log.e("GAUNUL", bundle.toString());
                 // this happens when a 'data' notification is received - we do not synthesize a local notification in this case
                 /*TODO: old code:
                 Log.d(LOG_TAG, "Cannot send to notification centre because there is no 'message' field in: " + bundle);
@@ -165,10 +167,14 @@ public class RNPushNotificationHelper {
                 try {
                     String md = bundle.getString("message_data");
                     JSONObject jsonObject = new JSONObject(md);
-                    Log.e(LOG_TAG, String.valueOf(jsonObject));
                     JSONObject mo = jsonObject.getJSONObject("meta_data").getJSONObject("message_object");
                     String title = mo.getString("title");
                     String tag = mo.getString("broadcast_id");
+                    if (broadcast_id.equals(tag)){
+                        Log.e(LOG_TAG,"broadcast was duplicated, should return");
+                        return;
+                    }
+                    broadcast_id = tag;
                     bundle.putString("tag", tag);
                     bundle.putString("message", title);
                 }catch (Exception ex){
@@ -176,6 +182,13 @@ public class RNPushNotificationHelper {
                     return;
                 }
                 //TODO: Hiep edited the new code
+            }else{
+                String tag = bundle.getString("tag");
+                if (broadcast_id.equals(tag)){
+                    Log.e(LOG_TAG,"broadcast was duplicated, should return");
+                    return;
+                }
+                broadcast_id = tag;
             }
 
             //TODO: Hiep additional the new code (checking message empty)
