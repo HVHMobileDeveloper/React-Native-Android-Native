@@ -47,6 +47,10 @@ public class RNPushNotificationHelper {
     private static final int ONE_MINUTE = 60 * 1000;
     private static final long ONE_HOUR = 60 * ONE_MINUTE;
     private static final long ONE_DAY = 24 * ONE_HOUR;
+
+    /*
+    (TODO: (HIEP) has added this the declare @(broadcast_id) to support duplicate notification issue)
+     */
     private static String broadcast_id = "";
 
     public RNPushNotificationHelper(Application context) {
@@ -137,7 +141,7 @@ public class RNPushNotificationHelper {
         }
     }
 
-    //Hiep edit this the class
+    //TODO: (HIEP) edit this the function
     public void sendToNotificationCentre(Bundle bundle) {
         try {
             Class intentClass = getMainActivityClass();
@@ -146,44 +150,56 @@ public class RNPushNotificationHelper {
                 return;
             }
 
+            /*
+             *  TODO: (HIEP) has added the new codes to handle empty content notify
+             *   issue and fixed can't display notify when app has killed):
+             */
             if (bundle.getString("message") == null) {
-                Log.e("GAUNUL", bundle.toString());
-                // this happens when a 'data' notification is received - we do not synthesize a local notification in this case
-                /*TODO: old code:
-                Log.d(LOG_TAG, "Cannot send to notification centre because there is no 'message' field in: " + bundle);
-                return;
-                */
-
-                //TODO:Hiep edited the new code:
-                Log.d(LOG_TAG, "Message in null in: " + bundle);
+                //Log.d(LOG_TAG, "Message in null in: " + bundle);
+                //(HIEP) Reject Notification from GG-FB:
                 if (bundle.getString("google.message_id") != null){
                     Log.e(LOG_TAG, "message from google");
                     return;
                 }
+                // (HIEP) Foreground func has defined in react js code: will be rejected when notify received from foregrounds:
+                // Only received background - killed
                 if (bundle.getBoolean("foreground")){
                     Log.e(LOG_TAG,"Foreground is true will be return");
                     return;
                 }
+
+                /*
+                #TODO: (HIEP) following format the payload datas has received from back-end:
+                 */
                 try {
                     String md = bundle.getString("message_data");
                     JSONObject jsonObject = new JSONObject(md);
                     JSONObject mo = jsonObject.getJSONObject("meta_data").getJSONObject("message_object");
                     String title = mo.getString("title");
                     String tag = mo.getString("broadcast_id");
+                    JSONObject payload = new JSONObject();
+                    payload.put("broadcast_id", mo.getString("broadcast_id"));
+                    payload.put("incident_id", mo.getString("incident_id"));
+                    payload.put("parent_broadcast_id", mo.getString("parent_broadcast_id"));
+
+                    /*(HIEP) checked duplicate notify will be returned with same the broadcast_id
+                    *TODO:(take note: following for each the notify only has a broadcast_id, can't the same)
+                     */
                     if (broadcast_id.equals(tag)){
                         Log.e(LOG_TAG,"broadcast was duplicated, should return");
                         return;
                     }
+
                     broadcast_id = tag;
-                    bundle.putString("tag", tag);
+                    bundle.putString("tag", payload.toString());
                     bundle.putString("message", title);
                 }catch (Exception ex){
                     Log.e(LOG_TAG,ex.toString());
                     return;
                 }
-                //TODO: Hiep edited the new code
             }else{
-                String tag = bundle.getString("tag");
+                //TODO: (HIEP) checked the duplicate notify as well, (note:  this case only for Foreground)
+                String tag = bundle.getBundle("tag").getString("broadcast_id");
                 if (broadcast_id.equals(tag)){
                     Log.e(LOG_TAG,"broadcast was duplicated, should return");
                     return;
@@ -191,7 +207,7 @@ public class RNPushNotificationHelper {
                 broadcast_id = tag;
             }
 
-            //TODO: Hiep additional the new code (checking message empty)
+            //TODO: (HIEP) checked will do not appear any notify when Empty Message content
             if (bundle.getString("message").isEmpty()){
                 Log.e(LOG_TAG,"Empty message");
                 return;
